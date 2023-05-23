@@ -113,9 +113,11 @@ static void fuzz_nalloc_sig_handler(int signum, siginfo_t *siginfo, void *contex
     // prints out the last faked failed allocation stack trace
     printf("NULL alloc in %d run: %s(%zu) \n", fuzz_nalloc_runs, fuzz_nalloc_failed_op, fuzz_nalloc_failed_size);
     printf("%s\n", fuzz_nalloc_backtrace_str);
-    if (fuzz_nalloc_orig_sigaction.sa_flags | SA_SIGINFO) {
-        fuzz_nalloc_orig_sigaction.sa_sigaction(signum, siginfo, context);
-    } else {
+    if (fuzz_nalloc_orig_sigaction.sa_flags & SA_SIGINFO) {
+        if (fuzz_nalloc_orig_sigaction.sa_sigaction != NULL) {
+            fuzz_nalloc_orig_sigaction.sa_sigaction(signum, siginfo, context);
+        }
+    } else if (fuzz_nalloc_orig_sigaction.sa_handler != NULL) {
         fuzz_nalloc_orig_sigaction.sa_handler(signum);
     }
 }
