@@ -112,8 +112,8 @@ static void fuzz_nalloc_random_seed(const uint8_t *data, size_t size) {
 
 static void fuzz_nalloc_sig_handler(int signum, siginfo_t *siginfo, void *context) {
     // prints out the last faked failed allocation stack trace
-    printf("NULL alloc in %d run: %s(%zu) \n", fuzz_nalloc_runs, fuzz_nalloc_failed_op, fuzz_nalloc_failed_size);
-    printf("%s\n", fuzz_nalloc_backtrace_str);
+    fprintf(stderr, "NULL alloc in %d run: %s(%zu) \n", fuzz_nalloc_runs, fuzz_nalloc_failed_op, fuzz_nalloc_failed_size);
+    fprintf(stderr, "%s\n", fuzz_nalloc_backtrace_str);
     if (fuzz_nalloc_orig_sigaction.sa_flags & SA_SIGINFO) {
         if (fuzz_nalloc_orig_sigaction.sa_sigaction != NULL) {
             fuzz_nalloc_orig_sigaction.sa_sigaction(signum, siginfo, context);
@@ -166,8 +166,8 @@ static void fuzz_nalloc_save_backtrace(void) {
     fuzz_nalloc_backtrace_offset = 0;
     backtrace_full (backtrace_state, 0, backtrace_callback_save, backtrace_error_donothing, &data);
     if (fuzz_nalloc_verbose) {
-        printf("NULL alloc in %d run: %s(%zu) \n", fuzz_nalloc_runs, fuzz_nalloc_failed_op, fuzz_nalloc_failed_size);
-        printf("%s\n", fuzz_nalloc_backtrace_str);
+        fprintf(stderr, "NULL alloc in %d run: %s(%zu) \n", fuzz_nalloc_runs, fuzz_nalloc_failed_op, fuzz_nalloc_failed_size);
+        fprintf(stderr, "%s\n", fuzz_nalloc_backtrace_str);
     }
 }
 
