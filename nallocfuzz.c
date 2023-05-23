@@ -128,6 +128,12 @@ static void fuzz_nalloc_sig_handler(int signum, siginfo_t *siginfo, void *contex
 #define BACKTRACE_EXCLUDE 2
 #define BACKTRACE_OVERFLOW 3
 
+char * fuzz_nalloc_exclude_ext = NULL;
+size_t fuzz_nalloc_exclude_ext_len = 0;
+uint32_t fuzz_nalloc_bitmask = 0xFF;
+uint32_t fuzz_nalloc_magic = 0x294cee63;
+bool fuzz_nalloc_verbose = false;
+
 struct backtrace_data {
   size_t index;
   size_t max;
@@ -168,12 +174,6 @@ static void fuzz_nalloc_save_backtrace(void) {
 void * __interceptor_malloc(size_t);
 void * __interceptor_calloc(size_t, size_t);
 void * __interceptor_realloc(void*, size_t);
-
-char * fuzz_nalloc_exclude_ext = NULL;
-size_t fuzz_nalloc_exclude_ext_len = 0;
-uint32_t fuzz_nalloc_bitmask = 0xFF;
-uint32_t fuzz_nalloc_magic = 0x294cee63;
-bool fuzz_nalloc_verbose = false;
 
 static int backtrace_callback_exclude (void *vdata, uintptr_t pc,
           const char *filename, int lineno, const char *function) {
