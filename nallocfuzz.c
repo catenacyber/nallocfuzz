@@ -235,6 +235,7 @@ static bool fuzz_nalloc_fail(size_t size, const char *op) {
 
 void *calloc(size_t nmemb, size_t size) {
     if (fuzz_nalloc_fail(size, "calloc")) {
+        errno = ENOMEM;
         return NULL;
     }
     return __interceptor_calloc(nmemb, size);
@@ -242,6 +243,7 @@ void *calloc(size_t nmemb, size_t size) {
 
 void *malloc(size_t size) {
     if (fuzz_nalloc_fail(size, "malloc")) {
+        errno = ENOMEM;
         return NULL;
     }
     return __interceptor_malloc(size);
@@ -249,6 +251,7 @@ void *malloc(size_t size) {
 
 void *realloc(void *ptr, size_t size) {
     if (fuzz_nalloc_fail(size, "realloc")) {
+        errno = ENOMEM;
         return NULL;
     }
     return __interceptor_realloc(ptr, size);
