@@ -330,7 +330,7 @@ void fuzz_nalloc_init(const char * prog) {
     }
 
     char * verbose = getenv("NALLOC_FUZZ_VERBOSE");
-    if (magic) {
+    if (verbose) {
         fuzz_nalloc_verbose = true;
     }
 
