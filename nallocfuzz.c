@@ -158,6 +158,10 @@ static void fuzz_nalloc_save_backtrace(void) {
     data.max = 64;
     fuzz_nalloc_backtrace_offset = 0;
     backtrace_full (backtrace_state, 0, backtrace_callback_save, backtrace_error_donothing, &data);
+    if (fuzz_nalloc_verbose) {
+        printf("NULL alloc in %d run: %s(%zu) \n", fuzz_nalloc_runs, fuzz_nalloc_failed_op, fuzz_nalloc_failed_size);
+        printf("%s\n", fuzz_nalloc_backtrace_str);
+    }
 }
 
 void * __interceptor_malloc(size_t);
@@ -168,6 +172,7 @@ char * fuzz_nalloc_exclude_ext = NULL;
 size_t fuzz_nalloc_exclude_ext_len = 0;
 uint32_t fuzz_nalloc_bitmask = 0xFF;
 uint32_t fuzz_nalloc_magic = 0x294cee63;
+bool fuzz_nalloc_verbose = false;
 
 static int backtrace_callback_exclude (void *vdata, uintptr_t pc,
           const char *filename, int lineno, const char *function) {
@@ -303,13 +308,13 @@ void error_callback_create (void *data, const char *msg, int errnum) {
 }
 
 void fuzz_nalloc_init(const char * prog) {
-    fuzz_nalloc_exclude_ext =  getenv("NALLOC_FUZZ_EXCLUDE_EXT");
+    fuzz_nalloc_exclude_ext = getenv("NALLOC_FUZZ_EXCLUDE_EXT");
     if (fuzz_nalloc_exclude_ext == NULL) {
         fuzz_nalloc_exclude_ext = ".rs";
     }
     fuzz_nalloc_exclude_ext_len = strlen(fuzz_nalloc_exclude_ext);
 
-    char * bitmask =  getenv("NALLOC_FUZZ_FREQ");
+    char * bitmask = getenv("NALLOC_FUZZ_FREQ");
     if (bitmask) {
         int shift = atoi(bitmask);
         if (shift > 0 && shift < 31) {
@@ -317,9 +322,14 @@ void fuzz_nalloc_init(const char * prog) {
         }
     }
 
-    char * magic =  getenv("NALLOC_FUZZ_MAGIC");
+    char * magic = getenv("NALLOC_FUZZ_MAGIC");
     if (magic) {
         fuzz_nalloc_magic = (uint32_t) strtol(magic, NULL, 0);
+    }
+
+    char * verbose = getenv("NALLOC_FUZZ_VERBOSE");
+    if (magic) {
+        fuzz_nalloc_verbose = true;
     }
 
     backtrace_state = backtrace_create_state (prog, 1, error_callback_create, NULL);
