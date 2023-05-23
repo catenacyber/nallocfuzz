@@ -266,9 +266,17 @@ void fuzz_nalloc_init_post() {
     struct sigaction new_action;
     sigemptyset (&new_action.sa_mask);
     new_action.sa_sigaction = fuzz_nalloc_sig_handler;
-    new_action.sa_flags = SA_SIGINFO;
+    new_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
     sigaction (SIGSEGV, &new_action, &fuzz_nalloc_orig_sigaction);
     sigaction (SIGABRT, &new_action, &fuzz_nalloc_orig_sigaction);
+    sigaction (SIGALRM, &new_action, &fuzz_nalloc_orig_sigaction);
+    sigaction (SIGINT, &new_action, &fuzz_nalloc_orig_sigaction);
+    sigaction (SIGTERM, &new_action, &fuzz_nalloc_orig_sigaction);
+    sigaction (SIGBUS, &new_action, &fuzz_nalloc_orig_sigaction);
+    sigaction (SIGFPE, &new_action, &fuzz_nalloc_orig_sigaction);
+    sigaction (SIGXFSZ, &new_action, &fuzz_nalloc_orig_sigaction);
+    sigaction (SIGUSR1, &new_action, &fuzz_nalloc_orig_sigaction);
+    sigaction (SIGUSR2, &new_action, &fuzz_nalloc_orig_sigaction);
     fuzz_nalloc_inited = 1;
 }
 
