@@ -91,7 +91,8 @@ const char * fuzz_nalloc_failed_op = "";
 #define FUZZ_NALLOC_BACKTRACE_MAXLEN 0x2000
 char fuzz_nalloc_backtrace_str[FUZZ_NALLOC_BACKTRACE_MAXLEN];
 size_t fuzz_nalloc_backtrace_offset = 0;
-struct sigaction fuzz_nalloc_orig_sigaction;
+#define NALLOC_SIGNAL_MAX 32
+struct sigaction fuzz_nalloc_orig_sigaction[NALLOC_SIGNAL_MAX];
 void *backtrace_state;
 int fuzz_nalloc_inited = 0;
 
@@ -114,12 +115,12 @@ static void fuzz_nalloc_sig_handler(int signum, siginfo_t *siginfo, void *contex
     // prints out the last faked failed allocation stack trace
     fprintf(stderr, "NULL alloc in %d run: %s(%zu) \n", fuzz_nalloc_runs, fuzz_nalloc_failed_op, fuzz_nalloc_failed_size);
     fprintf(stderr, "%s\n", fuzz_nalloc_backtrace_str);
-    if (fuzz_nalloc_orig_sigaction.sa_flags & SA_SIGINFO) {
-        if (fuzz_nalloc_orig_sigaction.sa_sigaction != NULL) {
-            fuzz_nalloc_orig_sigaction.sa_sigaction(signum, siginfo, context);
+    if (fuzz_nalloc_orig_sigaction[signum].sa_flags & SA_SIGINFO) {
+        if (fuzz_nalloc_orig_sigaction[signum].sa_sigaction != NULL) {
+            fuzz_nalloc_orig_sigaction[signum].sa_sigaction(signum, siginfo, context);
         }
-    } else if (fuzz_nalloc_orig_sigaction.sa_handler != NULL) {
-        fuzz_nalloc_orig_sigaction.sa_handler(signum);
+    } else if (fuzz_nalloc_orig_sigaction[signum].sa_handler != NULL) {
+        fuzz_nalloc_orig_sigaction[signum].sa_handler(signum);
     }
 }
 
@@ -273,16 +274,16 @@ void fuzz_nalloc_init_post() {
     sigemptyset (&new_action.sa_mask);
     new_action.sa_sigaction = fuzz_nalloc_sig_handler;
     new_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
-    sigaction (SIGSEGV, &new_action, &fuzz_nalloc_orig_sigaction);
-    sigaction (SIGABRT, &new_action, &fuzz_nalloc_orig_sigaction);
-    sigaction (SIGALRM, &new_action, &fuzz_nalloc_orig_sigaction);
-    sigaction (SIGINT, &new_action, &fuzz_nalloc_orig_sigaction);
-    sigaction (SIGTERM, &new_action, &fuzz_nalloc_orig_sigaction);
-    sigaction (SIGBUS, &new_action, &fuzz_nalloc_orig_sigaction);
-    sigaction (SIGFPE, &new_action, &fuzz_nalloc_orig_sigaction);
-    sigaction (SIGXFSZ, &new_action, &fuzz_nalloc_orig_sigaction);
-    sigaction (SIGUSR1, &new_action, &fuzz_nalloc_orig_sigaction);
-    sigaction (SIGUSR2, &new_action, &fuzz_nalloc_orig_sigaction);
+    sigaction (SIGSEGV, &new_action, &fuzz_nalloc_orig_sigaction[SIGSEGV]);
+    sigaction (SIGABRT, &new_action, &fuzz_nalloc_orig_sigaction[SIGABRT]);
+    sigaction (SIGALRM, &new_action, &fuzz_nalloc_orig_sigaction[SIGALRM]);
+    sigaction (SIGINT, &new_action, &fuzz_nalloc_orig_sigaction[SIGINT]);
+    sigaction (SIGTERM, &new_action, &fuzz_nalloc_orig_sigaction[SIGTERM]);
+    sigaction (SIGBUS, &new_action, &fuzz_nalloc_orig_sigaction[SIGBUS]);
+    sigaction (SIGFPE, &new_action, &fuzz_nalloc_orig_sigaction[SIGFPE]);
+    sigaction (SIGXFSZ, &new_action, &fuzz_nalloc_orig_sigaction[SIGXFSZ]);
+    sigaction (SIGUSR1, &new_action, &fuzz_nalloc_orig_sigaction[SIGUSR1]);
+    sigaction (SIGUSR2, &new_action, &fuzz_nalloc_orig_sigaction[SIGUSR2]);
     fuzz_nalloc_inited = 1;
 }
 
