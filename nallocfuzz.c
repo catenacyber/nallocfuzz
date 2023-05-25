@@ -175,6 +175,7 @@ static void fuzz_nalloc_save_backtrace(void) {
 void * __interceptor_malloc(size_t);
 void * __interceptor_calloc(size_t, size_t);
 void * __interceptor_realloc(void*, size_t);
+void * __interceptor_reallocarray(void*, size_t, size_t);
 
 static int backtrace_callback_exclude (void *vdata, uintptr_t pc,
           const char *filename, int lineno, const char *function) {
@@ -264,6 +265,14 @@ void *realloc(void *ptr, size_t size) {
         return NULL;
     }
     return __interceptor_realloc(ptr, size);
+}
+
+void *reallocarray(void *ptr, size_t nmemb, size_t size) {
+    if (fuzz_nalloc_fail(size, "reallocarray")) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    return __interceptor_reallocarray(ptr, nmemb, size);
 }
 
 
