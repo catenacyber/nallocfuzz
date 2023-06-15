@@ -185,7 +185,10 @@ static int backtrace_callback_exclude (void *vdata, uintptr_t pc,
     }
     data->index++;
     if (filename == NULL) {
-        filename = "";
+        return BACKTRACE_OK;
+    }
+    if (strncmp(function, "__interceptor", strlen("__interceptor")) == 0) {
+        return BACKTRACE_EXCLUDE;
     }
     size_t flen = strlen(filename);
     if (flen >= fuzz_nalloc_exclude_ext_len) {
