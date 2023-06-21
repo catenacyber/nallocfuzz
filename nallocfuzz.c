@@ -235,9 +235,9 @@ static bool fuzz_nalloc_fail(size_t size, const char *op) {
             __sync_fetch_and_sub(&fuzz_nalloc_running, 1);
             return false;
         }
-        fuzz_nalloc_save_backtrace();
         fuzz_nalloc_failed_size = size;
         fuzz_nalloc_failed_op = op;
+        fuzz_nalloc_save_backtrace();
         __sync_fetch_and_sub(&fuzz_nalloc_running, 1);
         return true;
     }
