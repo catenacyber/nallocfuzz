@@ -54,16 +54,25 @@ static int backtrace_callback_exclude (void *vdata, uintptr_t pc,
     return BACKTRACE_OK;
 }
 
+__thread unsigned int nalloc_running = 0;
+
 static bool nalloc_run_fail(size_t size, const char *op) {
+    if (__sync_fetch_and_add(&fuzz_nalloc_running, 1) != 1) {
+        // do not fail allocations inside this function
+        __sync_fetch_and_sub(&fuzz_nalloc_running, 1);
+        return false;
+    }
     bool r = false;
     if (nalloc_exclude_size > 0) {
         if (size != nalloc_exclude_size) {
+            __sync_fetch_and_sub(&fuzz_nalloc_running, 1);
             return false;
         }
         r = true;
     }
     if (nalloc_exclude_op != NULL) {
         if (strcmp(op, nalloc_exclude_op) != 0) {
+            __sync_fetch_and_sub(&fuzz_nalloc_running, 1);
             return false;
         }
         r = true;
@@ -84,6 +93,7 @@ static bool nalloc_run_fail(size_t size, const char *op) {
         fprintf(stderr, "NULL alloc for %s(%zu) :\n", op, size);
         fprintf(stderr, "%s\n", nalloc_run_backtrace_str);
     }
+    __sync_fetch_and_sub(&fuzz_nalloc_running, 1);
     return r;
 }
 
