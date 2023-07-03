@@ -187,7 +187,9 @@ static int backtrace_callback_exclude (void *vdata, uintptr_t pc,
     if (filename == NULL) {
         return BACKTRACE_OK;
     }
-    if (function != NULL && strncmp(function, "__interceptor", strlen("__interceptor")) == 0) {
+    if (function != NULL &&
+        (strncmp(function, "__interceptor", strlen("__interceptor")) == 0 ||
+         strncmp(function, "__sanitizer", strlen("__sanitizer")) == 0)) {
         return BACKTRACE_EXCLUDE;
     }
     size_t flen = strlen(filename);
