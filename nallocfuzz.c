@@ -348,6 +348,8 @@ void fuzz_nalloc_init(const char * prog) {
         fuzz_nalloc_verbose = true;
     }
 
+    setenv("NALLOC_FUZZ_VERSION", "0.1", 1);
+
     backtrace_state = backtrace_create_state (prog, 1, error_callback_create, NULL);
 }
 
