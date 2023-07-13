@@ -19,3 +19,6 @@ export NALLOC_RUN_OPERATION=realloc
 export NALLOC_RUN_CALLER=caller
 LD_PRELOAD=/path/to/nallocrun.so /path/to/prog args
 ```
+
+This does not work with ASAN which takes precedence over `LD_PRELOAD`
+Other solution is to get nallocrun statically compiled into your binary...
