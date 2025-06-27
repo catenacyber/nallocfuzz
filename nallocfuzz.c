@@ -132,6 +132,7 @@ static void fuzz_nalloc_sig_handler(int signum, siginfo_t *siginfo, void *contex
 char * fuzz_nalloc_exclude_ext = NULL;
 size_t fuzz_nalloc_exclude_ext_len = 0;
 uint32_t fuzz_nalloc_bitmask = 0xFF;
+size_t fuzz_nalloc_backtrace_max = 6;
 uint32_t fuzz_nalloc_magic = 0x294cee63;
 bool fuzz_nalloc_verbose = false;
 
@@ -187,8 +188,10 @@ static int backtrace_callback_exclude (void *vdata, uintptr_t pc,
     if (filename == NULL) {
         return BACKTRACE_OK;
     }
+    // Also ___interceptor_glob /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:2358
     if (function != NULL &&
         (strncmp(function, "__interceptor", strlen("__interceptor")) == 0 ||
+         strncmp(function, "___interceptor", strlen("___interceptor")) == 0 ||
          strncmp(function, "__sanitizer", strlen("__sanitizer")) == 0)) {
         return BACKTRACE_EXCLUDE;
     }
@@ -209,9 +212,9 @@ static bool fuzz_nalloc_backtrace_exclude() {
     }
 
     data.index = 0;
-    data.max = 8;
+    data.max = fuzz_nalloc_backtrace_max;
     int r = backtrace_full (backtrace_state, 0, backtrace_callback_exclude, backtrace_error_donothing, &data);
-    if (r == BACKTRACE_EXCLUDE) {
+    if (r == BACKTRACE_EXCLUDE || r == BACKTRACE_LIMIT) {
         return true;
     }
     return false;
@@ -336,6 +339,10 @@ void fuzz_nalloc_init(const char * prog) {
         if (shift > 0 && shift < 31) {
             fuzz_nalloc_bitmask = 1 << shift;
         }
+    }
+    char * btmax = getenv("NALLOC_FUZZ_BTMAX");
+    if (btmax) {
+        fuzz_nalloc_backtrace_max = atoi(btmax);
     }
 
     char * magic = getenv("NALLOC_FUZZ_MAGIC");
