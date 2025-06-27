@@ -113,7 +113,7 @@ static void fuzz_nalloc_random_seed(const uint8_t *data, size_t size) {
 
 static void fuzz_nalloc_sig_handler(int signum, siginfo_t *siginfo, void *context) {
     // prints out the last faked failed allocation stack trace
-    fprintf(stderr, "NULL alloc in %d run: %s(%zu) \n", fuzz_nalloc_runs, fuzz_nalloc_failed_op, fuzz_nalloc_failed_size);
+    fprintf(stderr, "sig %d NULL alloc in %d run: %s(%zu) \n", signum, fuzz_nalloc_runs, fuzz_nalloc_failed_op, fuzz_nalloc_failed_size);
     fprintf(stderr, "%s\n", fuzz_nalloc_backtrace_str);
     if (fuzz_nalloc_orig_sigaction[signum].sa_flags & SA_SIGINFO) {
         if (fuzz_nalloc_orig_sigaction[signum].sa_sigaction != NULL) {
@@ -181,11 +181,14 @@ void * __interceptor_reallocarray(void*, size_t, size_t);
 static int backtrace_callback_exclude (void *vdata, uintptr_t pc,
           const char *filename, int lineno, const char *function) {
     struct backtrace_data *data = (struct backtrace_data *) vdata;
-    if (data->index >= data->max) {
+    if (data->index > data->max) {
         return BACKTRACE_LIMIT;
     }
     data->index++;
     if (filename == NULL) {
+        if (data->index == data->max) {
+            return BACKTRACE_EXCLUDE;
+        }
         return BACKTRACE_OK;
     }
     // Also ___interceptor_glob /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:2358
@@ -214,7 +217,7 @@ static bool fuzz_nalloc_backtrace_exclude() {
     data.index = 0;
     data.max = fuzz_nalloc_backtrace_max;
     int r = backtrace_full (backtrace_state, 0, backtrace_callback_exclude, backtrace_error_donothing, &data);
-    if (r == BACKTRACE_EXCLUDE || r == BACKTRACE_LIMIT) {
+    if (r == BACKTRACE_EXCLUDE) {
         return true;
     }
     return false;
