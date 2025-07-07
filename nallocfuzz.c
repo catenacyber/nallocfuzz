@@ -226,7 +226,7 @@ static bool fuzz_nalloc_backtrace_exclude() {
 static bool fuzz_nalloc_fail(size_t size, const char *op) {
     if (__sync_fetch_and_add(&fuzz_nalloc_running, 1) != 1) {
         // do not fail allocations outside of fuzzer input
-        // and od not fail inside of this function
+        // and do not fail inside of this function
         __sync_fetch_and_sub(&fuzz_nalloc_running, 1);
         return false;
     }
