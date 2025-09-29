@@ -22,6 +22,16 @@
  SOFTWARE.
 */
 
+/* Nalloc fuzz : framework to make allocations and IO fail while fuzzing */
+
+/* Environment variables to control nalloc fuzz behavior :
+ * NALLOC_VERBOSE: set it to log failed allocations with their stacktraces
+ * NALLOC_FREQ: set it to control how frequently allocations fail
+ *  value 0 disables nalloc (no allocations fail)
+ *  value 1..31 : allocations fail always (1) or very rarely (31 -> 1 / 2^31)
+ *  value 32 : allocations fail at a random rate between 5 and 20 for each run
+ */
+
 #ifndef NALLOC_INC_C_
 #define NALLOC_INC_C_
 
