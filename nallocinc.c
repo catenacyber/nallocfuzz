@@ -35,6 +35,20 @@
 #ifndef NALLOC_INC_C_
 #define NALLOC_INC_C_
 
+#define FUZZER_ENABLE_NALLOC 1
+#if defined(__has_feature)
+#if __has_feature(memory_sanitizer)
+#undef FUZZER_ENABLE_NALLOC
+#endif
+#endif
+
+#if !defined(FUZZER_ENABLE_NALLOC)
+#define nalloc_init(x)
+#define nalloc_restrict_file_prefix(x)
+#define nalloc_start(x, y)
+#define nalloc_end()
+#else
+
 #if defined(__clang__) && defined(__has_feature)
 #if __has_feature(address_sanitizer)
 #define NALLOC_ASAN 1
@@ -133,11 +147,6 @@ void nalloc_init(const char *prog) {
     nalloc_random_bitmask = false;
     nalloc_bitmask = 0;
     return;
-  }
-
-  char *magic = getenv("NALLOC_MAGIC");
-  if (magic) {
-    nalloc_magic = (uint32_t)strtol(magic, NULL, 0);
   }
 
   char *verbose = getenv("NALLOC_VERBOSE");
@@ -335,5 +344,7 @@ void *reallocarray(void *ptr, size_t nmemb, size_t size) {
 #ifdef __cplusplus
 }  // extern "C" {
 #endif
+
+#endif // FUZZER_ENABLE_NALLOC
 
 #endif  // NALLOC_INC_C_
