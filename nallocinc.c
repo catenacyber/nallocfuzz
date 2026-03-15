@@ -254,7 +254,7 @@ extern ssize_t __interceptor_send(int, const void *, size_t, int);
 #define nalloc_recv(f, b, s, x) __interceptor_recv(f, b, s, x)
 #define nalloc_send(f, b, s, x) __interceptor_send(f, b, s, x)
 
-#else
+#elif defined(__GLIBC__)
 extern void *__libc_malloc(size_t);
 extern void *__libc_calloc(size_t, size_t);
 extern void *__libc_realloc(void *, size_t);
@@ -274,6 +274,8 @@ extern ssize_t __send(int, const void *, size_t, int);
 #define nalloc_write(f, b, s) __write(f, b, s)
 #define nalloc_recv(f, b, s, x) __recv(f, b, s, x)
 #define nalloc_send(f, b, s, x) __send(f, b, s, x)
+#else
+#error "nalloc only works with ASAN or glibc"
 #endif
 
 // nalloc standard function overwrites with pseudo-random failures
